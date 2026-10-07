@@ -5,7 +5,7 @@ replicaCount: 2
 
 backend:
   image: ghcr.io/amanyadav7015/taskboard-backend
-  tag: 13fc94b97ac9429277e6050b09e04a08ffd89cb3
+  tag: 864a1e1b0c9b42fb30ca630f9dd80a6387c899d4
   pullPolicy: IfNotPresent
   replicas: 2
   port: 8000
@@ -27,7 +27,7 @@ backend:
 
 frontend:
   image: ghcr.io/amanyadav7015/taskboard-frontend
-  tag: 13fc94b97ac9429277e6050b09e04a08ffd89cb3
+  tag: 864a1e1b0c9b42fb30ca630f9dd80a6387c899d4
   pullPolicy: IfNotPresent
   replicas: 2
   port: 80

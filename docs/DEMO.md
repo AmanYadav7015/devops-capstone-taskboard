@@ -485,3 +485,80 @@ and `terraform.tfvars.example` are committed, and neither contains a value.
 GHCR authentication in the pipeline uses the automatically provisioned `GITHUB_TOKEN`, scoped to
 `packages: write` on one job only. There is no long-lived registry credential stored anywhere in this
 repository.
+
+---
+
+## Part 3 — The chain reaches the cluster
+
+Parts 1 and 2 ended at the registry. This closes the loop: the image the pipeline published is now
+the image the Kubernetes cluster is actually serving.
+
+The cluster was running `13fc94b97ac9429277e6050b09e04a08ffd89cb3`, which serves version 1.0.0:
+
+```bash
+kubectl exec -n capstone deploy/taskboard-backend -- \
+  python -c "import urllib.request,json;print(json.load(urllib.request.urlopen('http://localhost:8000/')))"
+```
+
+```text
+{'service': 'TaskBoard API', 'version': '1.0.0', 'docs': '/docs'}
+```
+
+Roll the release forward to the tag the pipeline built from commit `864a1e1`:
+
+```bash
+helm upgrade taskboard helm/taskboard -n capstone --reset-values \
+  --set backend.tag=864a1e1b0c9b42fb30ca630f9dd80a6387c899d4 \
+  --set frontend.tag=864a1e1b0c9b42fb30ca630f9dd80a6387c899d4
+kubectl rollout status deploy/taskboard-backend -n capstone
+kubectl rollout status deploy/taskboard-frontend -n capstone
+```
+
+```text
+REVISION: 10
+STATUS: deployed
+deployment "taskboard-backend" successfully rolled out
+deployment "taskboard-frontend" successfully rolled out
+```
+
+The Deployment now references the published image, and the running container reports the new version:
+
+```bash
+kubectl get deploy taskboard-backend -n capstone -o jsonpath='{.spec.template.spec.containers[0].image}'
+kubectl exec -n capstone deploy/taskboard-backend -- \
+  python -c "import urllib.request,json;print(json.load(urllib.request.urlopen('http://localhost:8000/')))"
+```
+
+```text
+ghcr.io/amanyadav7015/taskboard-backend:864a1e1b0c9b42fb30ca630f9dd80a6387c899d4
+{'service': 'TaskBoard API', 'version': '1.1.0', 'docs': '/docs'}
+```
+
+Served through the Ingress, with the data intact across the rollout:
+
+```bash
+minikube ssh -- "curl -s -H 'Host: taskboard.local' http://192.168.49.2/api/tasks/stats"
+```
+
+```text
+{"total":1813,"todo":1812,"inProgress":1,"done":0}
+```
+
+The full chain is therefore: a source commit, a pipeline run that tests and scans it, an image
+published to GHCR under that commit's SHA, and a Kubernetes rollout serving that exact image —
+with no step asserted rather than shown.
+
+### A note on the upgrade command
+
+The first two attempts used `--set backend.image.tag=...`, but this chart's values are
+`backend.image` (repository) and `backend.tag` (tag) as separate keys, so that produced a malformed
+reference and the pods failed with `InvalidImageName`:
+
+```text
+Failed to apply default image tag "map[tag:864a1e1b...]:13fc94b9...":
+couldn't parse image name: invalid reference format
+```
+
+The second attempt also used `--reuse-values`, which carried the bad override forward. Rolling back
+to the last good revision and upgrading with `--reset-values` fixed it. Worth knowing: `--reuse-values`
+preserves mistakes as faithfully as it preserves intent.
