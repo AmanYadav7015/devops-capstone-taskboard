@@ -508,8 +508,8 @@ The chart renders:
 | --- | --- |
 | backend `Deployment` | the FastAPI pods, with liveness on `/health` and readiness on `/ready` |
 | frontend `Deployment` | nginx pods serving the bundle and proxying `/api` |
-| `postgres` | an in-cluster StatefulSet-style database with a PersistentVolumeClaim |
-| two ClusterIP `Service`s | stable virtual IPs in front of ephemeral pods |
+| postgres `Deployment` + `PersistentVolumeClaim` + `Secret` | the in-cluster database, its storage and its credentials |
+| ClusterIP `Service`s | stable virtual IPs in front of ephemeral pods, one per component |
 | `Ingress` | `/` to the frontend service, `/api` to the backend service, one hostname |
 | `HorizontalPodAutoscaler` | scales the backend on CPU utilisation |
 | `ServiceMonitor` | tells the Prometheus Operator what to scrape |

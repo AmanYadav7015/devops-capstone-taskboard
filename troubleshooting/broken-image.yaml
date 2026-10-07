@@ -1,6 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata: {name: taskboard-broken-image, namespace: taskboard}
+metadata: {name: taskboard-broken-image, namespace: capstone}
 spec:
   replicas: 1
   selector: {matchLabels: {app: broken-image}}
