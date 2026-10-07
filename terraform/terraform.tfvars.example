@@ -1,0 +1,33 @@
+aws_region   = "ap-south-1"
+project_name = "capstone-taskboard"
+environment  = "dev"
+owner        = "devops-capstone"
+
+cluster_name    = "capstone-taskboard-eks"
+cluster_version = "1.31"
+
+vpc_cidr             = "10.20.0.0/16"
+availability_zones   = ["ap-south-1a", "ap-south-1b"]
+public_subnet_cidrs  = ["10.20.101.0/24", "10.20.102.0/24"]
+private_subnet_cidrs = ["10.20.1.0/24", "10.20.2.0/24"]
+
+enable_nat_gateway = true
+single_nat_gateway = true
+
+cluster_endpoint_public_access = true
+cluster_public_access_cidrs    = ["0.0.0.0/0"]
+
+node_instance_types = ["t3.medium"]
+node_capacity_type  = "ON_DEMAND"
+node_desired_size   = 2
+node_min_size       = 2
+node_max_size       = 4
+node_disk_size      = 20
+
+backend_port = 8000
+
+skip_aws_api_checks = false
+
+extra_tags = {
+  CostCenter = "training"
+}

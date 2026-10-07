@@ -1,0 +1,725 @@
+Tearing down everything that was really applied to LocalStack.
+
+$ terraform destroy -auto-approve
+module.network.aws_vpc.this: Refreshing state... [id=vpc-94c07c1b]
+module.network.aws_internet_gateway.this: Refreshing state... [id=igw-bfd39226]
+module.network.aws_subnet.private[1]: Refreshing state... [id=subnet-26d7ebcf]
+module.network.aws_route_table.public: Refreshing state... [id=rtb-b0283267]
+module.network.aws_route_table.private[0]: Refreshing state... [id=rtb-e120610b]
+module.network.aws_route_table.private[1]: Refreshing state... [id=rtb-19b910fd]
+module.network.aws_subnet.private[0]: Refreshing state... [id=subnet-d842c79b]
+module.network.aws_subnet.public[1]: Refreshing state... [id=subnet-d483405e]
+module.network.aws_subnet.public[0]: Refreshing state... [id=subnet-90bc2ec2]
+module.network.aws_security_group.alb: Refreshing state... [id=sg-931cb4e13b2b4752a]
+module.network.aws_eip.nat[0]: Refreshing state... [id=eipalloc-30db173d]
+module.network.aws_route.public_internet: Refreshing state... [id=r-rtb-b02832671080289494]
+module.network.aws_route_table_association.private[0]: Refreshing state... [id=rtbassoc-f375fadc]
+module.network.aws_route_table_association.public[0]: Refreshing state... [id=rtbassoc-6af8a8e7]
+module.network.aws_route_table_association.private[1]: Refreshing state... [id=rtbassoc-b04fb515]
+module.network.aws_route_table_association.public[1]: Refreshing state... [id=rtbassoc-798bab13]
+module.network.aws_security_group.app: Refreshing state... [id=sg-0e0f4b485e9594a69]
+module.network.aws_nat_gateway.this[0]: Refreshing state... [id=nat-1aa9ae57442d9711f]
+module.network.aws_route.private_nat[1]: Refreshing state... [id=r-rtb-19b910fd1080289494]
+module.network.aws_route.private_nat[0]: Refreshing state... [id=r-rtb-e120610b1080289494]
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  - destroy
+
+Terraform will perform the following actions:
+
+  # module.network.aws_eip.nat[0] will be destroyed
+  - resource "aws_eip" "nat" {
+      - allocation_id            = "eipalloc-30db173d" -> null
+      - arn                      = "arn:aws:ec2:ap-south-1::elastic-ip/eipalloc-30db173d" -> null
+      - association_id           = "eipassoc-7886e78e" -> null
+      - domain                   = "vpc" -> null
+      - id                       = "eipalloc-30db173d" -> null
+      - network_interface        = "eni-271c6e78" -> null
+      - private_dns              = "ip-10-39-183-125.ap-south-1.compute.internal" -> null
+      - private_ip               = "10.39.183.125" -> null
+      - public_dns               = "ec2-127-102-114-173.ap-south-1.compute.amazonaws.com" -> null
+      - public_ip                = "127.102.114.173" -> null
+      - region                   = "ap-south-1" -> null
+      - tags                     = {
+          - "Backend"     = "localstack"
+          - "Environment" = "localstack"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "capstone-taskboard-nat-eip-1"
+          - "Owner"       = "devops-capstone"
+          - "Project"     = "capstone-taskboard"
+        } -> null
+      - tags_all                 = {
+          - "Backend"     = "localstack"
+          - "Environment" = "localstack"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "capstone-taskboard-nat-eip-1"
+          - "Owner"       = "devops-capstone"
+          - "Project"     = "capstone-taskboard"
+        } -> null
+        # (8 unchanged attributes hidden)
+    }
+
+  # module.network.aws_internet_gateway.this will be destroyed
+  - resource "aws_internet_gateway" "this" {
+      - arn      = "arn:aws:ec2:ap-south-1:000000000000:internet-gateway/igw-bfd39226" -> null
+      - id       = "igw-bfd39226" -> null
+      - owner_id = "000000000000" -> null
+      - region   = "ap-south-1" -> null
+      - tags     = {
+          - "Backend"     = "localstack"
+          - "Environment" = "localstack"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "capstone-taskboard-igw"
+          - "Owner"       = "devops-capstone"
+          - "Project"     = "capstone-taskboard"
+        } -> null
+      - tags_all = {
+          - "Backend"     = "localstack"
+          - "Environment" = "localstack"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "capstone-taskboard-igw"
+          - "Owner"       = "devops-capstone"
+          - "Project"     = "capstone-taskboard"
+        } -> null
+      - vpc_id   = "vpc-94c07c1b" -> null
+    }
+
+  # module.network.aws_nat_gateway.this[0] will be destroyed
+  - resource "aws_nat_gateway" "this" {
+      - allocation_id                  = "eipalloc-30db173d" -> null
+      - connectivity_type              = "public" -> null
+      - id                             = "nat-1aa9ae57442d9711f" -> null
+      - region                         = "ap-south-1" -> null
+      - regional_nat_gateway_address   = [] -> null
+      - secondary_allocation_ids       = [] -> null
+      - secondary_private_ip_addresses = [] -> null
+      - subnet_id                      = "subnet-90bc2ec2" -> null
+      - tags                           = {
+          - "Backend"     = "localstack"
+          - "Environment" = "localstack"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "capstone-taskboard-nat-1"
+          - "Owner"       = "devops-capstone"
+          - "Project"     = "capstone-taskboard"
+        } -> null
+      - tags_all                       = {
+          - "Backend"     = "localstack"
+          - "Environment" = "localstack"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "capstone-taskboard-nat-1"
+          - "Owner"       = "devops-capstone"
+          - "Project"     = "capstone-taskboard"
+        } -> null
+      - vpc_id                         = "vpc-94c07c1b" -> null
+        # (1 unchanged attribute hidden)
+    }
+
+  # module.network.aws_route.private_nat[0] will be destroyed
+  - resource "aws_route" "private_nat" {
+      - destination_cidr_block      = "0.0.0.0/0" -> null
+      - id                          = "r-rtb-e120610b1080289494" -> null
+      - nat_gateway_id              = "nat-1aa9ae57442d9711f" -> null
+      - origin                      = "CreateRoute" -> null
+      - region                      = "ap-south-1" -> null
+      - route_table_id              = "rtb-e120610b" -> null
+      - state                       = "active" -> null
+        # (14 unchanged attributes hidden)
+    }
+
+  # module.network.aws_route.private_nat[1] will be destroyed
+  - resource "aws_route" "private_nat" {
+      - destination_cidr_block      = "0.0.0.0/0" -> null
+      - id                          = "r-rtb-19b910fd1080289494" -> null
+      - nat_gateway_id              = "nat-1aa9ae57442d9711f" -> null
+      - origin                      = "CreateRoute" -> null
+      - region                      = "ap-south-1" -> null
+      - route_table_id              = "rtb-19b910fd" -> null
+      - state                       = "active" -> null
+        # (14 unchanged attributes hidden)
+    }
+
+  # module.network.aws_route.public_internet will be destroyed
+  - resource "aws_route" "public_internet" {
+      - destination_cidr_block      = "0.0.0.0/0" -> null
+      - gateway_id                  = "igw-bfd39226" -> null
+      - id                          = "r-rtb-b02832671080289494" -> null
+      - origin                      = "CreateRoute" -> null
+      - region                      = "ap-south-1" -> null
+      - route_table_id              = "rtb-b0283267" -> null
+      - state                       = "active" -> null
+        # (14 unchanged attributes hidden)
+    }
+
+  # module.network.aws_route_table.private[0] will be destroyed
+  - resource "aws_route_table" "private" {
+      - arn              = "arn:aws:ec2:ap-south-1:000000000000:route-table/rtb-e120610b" -> null
+      - id               = "rtb-e120610b" -> null
+      - owner_id         = "000000000000" -> null
+      - propagating_vgws = [] -> null
+      - region           = "ap-south-1" -> null
+      - route            = [
+          - {
+              - cidr_block                 = "0.0.0.0/0"
+              - nat_gateway_id             = "nat-1aa9ae57442d9711f"
+                # (12 unchanged attributes hidden)
+            },
+        ] -> null
+      - tags             = {
+          - "Backend"     = "localstack"
+          - "Environment" = "localstack"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "capstone-taskboard-private-rt-ap-south-1a"
+          - "Owner"       = "devops-capstone"
+          - "Project"     = "capstone-taskboard"
+          - "Tier"        = "private"
+        } -> null
+      - tags_all         = {
+          - "Backend"     = "localstack"
+          - "Environment" = "localstack"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "capstone-taskboard-private-rt-ap-south-1a"
+          - "Owner"       = "devops-capstone"
+          - "Project"     = "capstone-taskboard"
+          - "Tier"        = "private"
+        } -> null
+      - vpc_id           = "vpc-94c07c1b" -> null
+    }
+
+  # module.network.aws_route_table.private[1] will be destroyed
+  - resource "aws_route_table" "private" {
+      - arn              = "arn:aws:ec2:ap-south-1:000000000000:route-table/rtb-19b910fd" -> null
+      - id               = "rtb-19b910fd" -> null
+      - owner_id         = "000000000000" -> null
+      - propagating_vgws = [] -> null
+      - region           = "ap-south-1" -> null
+      - route            = [
+          - {
+              - cidr_block                 = "0.0.0.0/0"
+              - nat_gateway_id             = "nat-1aa9ae57442d9711f"
+                # (12 unchanged attributes hidden)
+            },
+        ] -> null
+      - tags             = {
+          - "Backend"     = "localstack"
+          - "Environment" = "localstack"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "capstone-taskboard-private-rt-ap-south-1b"
+          - "Owner"       = "devops-capstone"
+          - "Project"     = "capstone-taskboard"
+          - "Tier"        = "private"
+        } -> null
+      - tags_all         = {
+          - "Backend"     = "localstack"
+          - "Environment" = "localstack"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "capstone-taskboard-private-rt-ap-south-1b"
+          - "Owner"       = "devops-capstone"
+          - "Project"     = "capstone-taskboard"
+          - "Tier"        = "private"
+        } -> null
+      - vpc_id           = "vpc-94c07c1b" -> null
+    }
+
+  # module.network.aws_route_table.public will be destroyed
+  - resource "aws_route_table" "public" {
+      - arn              = "arn:aws:ec2:ap-south-1:000000000000:route-table/rtb-b0283267" -> null
+      - id               = "rtb-b0283267" -> null
+      - owner_id         = "000000000000" -> null
+      - propagating_vgws = [] -> null
+      - region           = "ap-south-1" -> null
+      - route            = [
+          - {
+              - cidr_block                 = "0.0.0.0/0"
+              - gateway_id                 = "igw-bfd39226"
+                # (12 unchanged attributes hidden)
+            },
+        ] -> null
+      - tags             = {
+          - "Backend"     = "localstack"
+          - "Environment" = "localstack"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "capstone-taskboard-public-rt"
+          - "Owner"       = "devops-capstone"
+          - "Project"     = "capstone-taskboard"
+          - "Tier"        = "public"
+        } -> null
+      - tags_all         = {
+          - "Backend"     = "localstack"
+          - "Environment" = "localstack"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "capstone-taskboard-public-rt"
+          - "Owner"       = "devops-capstone"
+          - "Project"     = "capstone-taskboard"
+          - "Tier"        = "public"
+        } -> null
+      - vpc_id           = "vpc-94c07c1b" -> null
+    }
+
+  # module.network.aws_route_table_association.private[0] will be destroyed
+  - resource "aws_route_table_association" "private" {
+      - id             = "rtbassoc-f375fadc" -> null
+      - region         = "ap-south-1" -> null
+      - route_table_id = "rtb-e120610b" -> null
+      - subnet_id      = "subnet-d842c79b" -> null
+        # (1 unchanged attribute hidden)
+    }
+
+  # module.network.aws_route_table_association.private[1] will be destroyed
+  - resource "aws_route_table_association" "private" {
+      - id             = "rtbassoc-b04fb515" -> null
+      - region         = "ap-south-1" -> null
+      - route_table_id = "rtb-19b910fd" -> null
+      - subnet_id      = "subnet-26d7ebcf" -> null
+        # (1 unchanged attribute hidden)
+    }
+
+  # module.network.aws_route_table_association.public[0] will be destroyed
+  - resource "aws_route_table_association" "public" {
+      - id             = "rtbassoc-6af8a8e7" -> null
+      - region         = "ap-south-1" -> null
+      - route_table_id = "rtb-b0283267" -> null
+      - subnet_id      = "subnet-90bc2ec2" -> null
+        # (1 unchanged attribute hidden)
+    }
+
+  # module.network.aws_route_table_association.public[1] will be destroyed
+  - resource "aws_route_table_association" "public" {
+      - id             = "rtbassoc-798bab13" -> null
+      - region         = "ap-south-1" -> null
+      - route_table_id = "rtb-b0283267" -> null
+      - subnet_id      = "subnet-d483405e" -> null
+        # (1 unchanged attribute hidden)
+    }
+
+  # module.network.aws_security_group.alb will be destroyed
+  - resource "aws_security_group" "alb" {
+      - arn                    = "arn:aws:ec2:ap-south-1:000000000000:security-group/sg-931cb4e13b2b4752a" -> null
+      - description            = "Public ingress for the TaskBoard load balancer" -> null
+      - egress                 = [
+          - {
+              - cidr_blocks      = [
+                  - "0.0.0.0/0",
+                ]
+              - description      = "All outbound"
+              - from_port        = 0
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "-1"
+              - security_groups  = []
+              - self             = false
+              - to_port          = 0
+            },
+        ] -> null
+      - id                     = "sg-931cb4e13b2b4752a" -> null
+      - ingress                = [
+          - {
+              - cidr_blocks      = [
+                  - "0.0.0.0/0",
+                ]
+              - description      = "HTTP from the internet"
+              - from_port        = 80
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "tcp"
+              - security_groups  = []
+              - self             = false
+              - to_port          = 80
+            },
+          - {
+              - cidr_blocks      = [
+                  - "0.0.0.0/0",
+                ]
+              - description      = "HTTPS from the internet"
+              - from_port        = 443
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "tcp"
+              - security_groups  = []
+              - self             = false
+              - to_port          = 443
+            },
+        ] -> null
+      - name                   = "capstone-taskboard-alb-sg" -> null
+      - owner_id               = "000000000000" -> null
+      - region                 = "ap-south-1" -> null
+      - revoke_rules_on_delete = false -> null
+      - tags                   = {
+          - "Backend"     = "localstack"
+          - "Environment" = "localstack"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "capstone-taskboard-alb-sg"
+          - "Owner"       = "devops-capstone"
+          - "Project"     = "capstone-taskboard"
+        } -> null
+      - tags_all               = {
+          - "Backend"     = "localstack"
+          - "Environment" = "localstack"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "capstone-taskboard-alb-sg"
+          - "Owner"       = "devops-capstone"
+          - "Project"     = "capstone-taskboard"
+        } -> null
+      - vpc_id                 = "vpc-94c07c1b" -> null
+        # (1 unchanged attribute hidden)
+    }
+
+  # module.network.aws_security_group.app will be destroyed
+  - resource "aws_security_group" "app" {
+      - arn                    = "arn:aws:ec2:ap-south-1:000000000000:security-group/sg-0e0f4b485e9594a69" -> null
+      - description            = "TaskBoard workload ingress, reachable only from the load balancer" -> null
+      - egress                 = [
+          - {
+              - cidr_blocks      = [
+                  - "0.0.0.0/0",
+                ]
+              - description      = "All outbound"
+              - from_port        = 0
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "-1"
+              - security_groups  = []
+              - self             = false
+              - to_port          = 0
+            },
+        ] -> null
+      - id                     = "sg-0e0f4b485e9594a69" -> null
+      - ingress                = [
+          - {
+              - cidr_blocks      = []
+              - description      = "Backend API from the load balancer"
+              - from_port        = 8000
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "tcp"
+              - security_groups  = [
+                  - "sg-931cb4e13b2b4752a",
+                ]
+              - self             = false
+              - to_port          = 8000
+            },
+          - {
+              - cidr_blocks      = []
+              - description      = "Node to node traffic inside the VPC"
+              - from_port        = 0
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "-1"
+              - security_groups  = []
+              - self             = true
+              - to_port          = 0
+            },
+        ] -> null
+      - name                   = "capstone-taskboard-app-sg" -> null
+      - owner_id               = "000000000000" -> null
+      - region                 = "ap-south-1" -> null
+      - revoke_rules_on_delete = false -> null
+      - tags                   = {
+          - "Backend"     = "localstack"
+          - "Environment" = "localstack"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "capstone-taskboard-app-sg"
+          - "Owner"       = "devops-capstone"
+          - "Project"     = "capstone-taskboard"
+        } -> null
+      - tags_all               = {
+          - "Backend"     = "localstack"
+          - "Environment" = "localstack"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "capstone-taskboard-app-sg"
+          - "Owner"       = "devops-capstone"
+          - "Project"     = "capstone-taskboard"
+        } -> null
+      - vpc_id                 = "vpc-94c07c1b" -> null
+        # (1 unchanged attribute hidden)
+    }
+
+  # module.network.aws_subnet.private[0] will be destroyed
+  - resource "aws_subnet" "private" {
+      - arn                                            = "arn:aws:ec2:ap-south-1:000000000000:subnet/subnet-d842c79b" -> null
+      - assign_ipv6_address_on_creation                = false -> null
+      - availability_zone                              = "ap-south-1a" -> null
+      - availability_zone_id                           = "aps1-az1" -> null
+      - cidr_block                                     = "10.20.1.0/24" -> null
+      - enable_dns64                                   = false -> null
+      - enable_lni_at_device_index                     = 0 -> null
+      - enable_resource_name_dns_a_record_on_launch    = false -> null
+      - enable_resource_name_dns_aaaa_record_on_launch = false -> null
+      - id                                             = "subnet-d842c79b" -> null
+      - ipv6_native                                    = false -> null
+      - map_customer_owned_ip_on_launch                = false -> null
+      - map_public_ip_on_launch                        = false -> null
+      - owner_id                                       = "000000000000" -> null
+      - private_dns_hostname_type_on_launch            = "ip-name" -> null
+      - region                                         = "ap-south-1" -> null
+      - tags                                           = {
+          - "Backend"                                      = "localstack"
+          - "Environment"                                  = "localstack"
+          - "ManagedBy"                                    = "terraform"
+          - "Name"                                         = "capstone-taskboard-private-ap-south-1a"
+          - "Owner"                                        = "devops-capstone"
+          - "Project"                                      = "capstone-taskboard"
+          - "Tier"                                         = "private"
+          - "kubernetes.io/cluster/capstone-taskboard-eks" = "shared"
+          - "kubernetes.io/role/internal-elb"              = "1"
+        } -> null
+      - tags_all                                       = {
+          - "Backend"                                      = "localstack"
+          - "Environment"                                  = "localstack"
+          - "ManagedBy"                                    = "terraform"
+          - "Name"                                         = "capstone-taskboard-private-ap-south-1a"
+          - "Owner"                                        = "devops-capstone"
+          - "Project"                                      = "capstone-taskboard"
+          - "Tier"                                         = "private"
+          - "kubernetes.io/cluster/capstone-taskboard-eks" = "shared"
+          - "kubernetes.io/role/internal-elb"              = "1"
+        } -> null
+      - vpc_id                                         = "vpc-94c07c1b" -> null
+        # (4 unchanged attributes hidden)
+    }
+
+  # module.network.aws_subnet.private[1] will be destroyed
+  - resource "aws_subnet" "private" {
+      - arn                                            = "arn:aws:ec2:ap-south-1:000000000000:subnet/subnet-26d7ebcf" -> null
+      - assign_ipv6_address_on_creation                = false -> null
+      - availability_zone                              = "ap-south-1b" -> null
+      - availability_zone_id                           = "aps1-az3" -> null
+      - cidr_block                                     = "10.20.2.0/24" -> null
+      - enable_dns64                                   = false -> null
+      - enable_lni_at_device_index                     = 0 -> null
+      - enable_resource_name_dns_a_record_on_launch    = false -> null
+      - enable_resource_name_dns_aaaa_record_on_launch = false -> null
+      - id                                             = "subnet-26d7ebcf" -> null
+      - ipv6_native                                    = false -> null
+      - map_customer_owned_ip_on_launch                = false -> null
+      - map_public_ip_on_launch                        = false -> null
+      - owner_id                                       = "000000000000" -> null
+      - private_dns_hostname_type_on_launch            = "ip-name" -> null
+      - region                                         = "ap-south-1" -> null
+      - tags                                           = {
+          - "Backend"                                      = "localstack"
+          - "Environment"                                  = "localstack"
+          - "ManagedBy"                                    = "terraform"
+          - "Name"                                         = "capstone-taskboard-private-ap-south-1b"
+          - "Owner"                                        = "devops-capstone"
+          - "Project"                                      = "capstone-taskboard"
+          - "Tier"                                         = "private"
+          - "kubernetes.io/cluster/capstone-taskboard-eks" = "shared"
+          - "kubernetes.io/role/internal-elb"              = "1"
+        } -> null
+      - tags_all                                       = {
+          - "Backend"                                      = "localstack"
+          - "Environment"                                  = "localstack"
+          - "ManagedBy"                                    = "terraform"
+          - "Name"                                         = "capstone-taskboard-private-ap-south-1b"
+          - "Owner"                                        = "devops-capstone"
+          - "Project"                                      = "capstone-taskboard"
+          - "Tier"                                         = "private"
+          - "kubernetes.io/cluster/capstone-taskboard-eks" = "shared"
+          - "kubernetes.io/role/internal-elb"              = "1"
+        } -> null
+      - vpc_id                                         = "vpc-94c07c1b" -> null
+        # (4 unchanged attributes hidden)
+    }
+
+  # module.network.aws_subnet.public[0] will be destroyed
+  - resource "aws_subnet" "public" {
+      - arn                                            = "arn:aws:ec2:ap-south-1:000000000000:subnet/subnet-90bc2ec2" -> null
+      - assign_ipv6_address_on_creation                = false -> null
+      - availability_zone                              = "ap-south-1a" -> null
+      - availability_zone_id                           = "aps1-az1" -> null
+      - cidr_block                                     = "10.20.101.0/24" -> null
+      - enable_dns64                                   = false -> null
+      - enable_lni_at_device_index                     = 0 -> null
+      - enable_resource_name_dns_a_record_on_launch    = false -> null
+      - enable_resource_name_dns_aaaa_record_on_launch = false -> null
+      - id                                             = "subnet-90bc2ec2" -> null
+      - ipv6_native                                    = false -> null
+      - map_customer_owned_ip_on_launch                = false -> null
+      - map_public_ip_on_launch                        = true -> null
+      - owner_id                                       = "000000000000" -> null
+      - private_dns_hostname_type_on_launch            = "ip-name" -> null
+      - region                                         = "ap-south-1" -> null
+      - tags                                           = {
+          - "Backend"                                      = "localstack"
+          - "Environment"                                  = "localstack"
+          - "ManagedBy"                                    = "terraform"
+          - "Name"                                         = "capstone-taskboard-public-ap-south-1a"
+          - "Owner"                                        = "devops-capstone"
+          - "Project"                                      = "capstone-taskboard"
+          - "Tier"                                         = "public"
+          - "kubernetes.io/cluster/capstone-taskboard-eks" = "shared"
+          - "kubernetes.io/role/elb"                       = "1"
+        } -> null
+      - tags_all                                       = {
+          - "Backend"                                      = "localstack"
+          - "Environment"                                  = "localstack"
+          - "ManagedBy"                                    = "terraform"
+          - "Name"                                         = "capstone-taskboard-public-ap-south-1a"
+          - "Owner"                                        = "devops-capstone"
+          - "Project"                                      = "capstone-taskboard"
+          - "Tier"                                         = "public"
+          - "kubernetes.io/cluster/capstone-taskboard-eks" = "shared"
+          - "kubernetes.io/role/elb"                       = "1"
+        } -> null
+      - vpc_id                                         = "vpc-94c07c1b" -> null
+        # (4 unchanged attributes hidden)
+    }
+
+  # module.network.aws_subnet.public[1] will be destroyed
+  - resource "aws_subnet" "public" {
+      - arn                                            = "arn:aws:ec2:ap-south-1:000000000000:subnet/subnet-d483405e" -> null
+      - assign_ipv6_address_on_creation                = false -> null
+      - availability_zone                              = "ap-south-1b" -> null
+      - availability_zone_id                           = "aps1-az3" -> null
+      - cidr_block                                     = "10.20.102.0/24" -> null
+      - enable_dns64                                   = false -> null
+      - enable_lni_at_device_index                     = 0 -> null
+      - enable_resource_name_dns_a_record_on_launch    = false -> null
+      - enable_resource_name_dns_aaaa_record_on_launch = false -> null
+      - id                                             = "subnet-d483405e" -> null
+      - ipv6_native                                    = false -> null
+      - map_customer_owned_ip_on_launch                = false -> null
+      - map_public_ip_on_launch                        = true -> null
+      - owner_id                                       = "000000000000" -> null
+      - private_dns_hostname_type_on_launch            = "ip-name" -> null
+      - region                                         = "ap-south-1" -> null
+      - tags                                           = {
+          - "Backend"                                      = "localstack"
+          - "Environment"                                  = "localstack"
+          - "ManagedBy"                                    = "terraform"
+          - "Name"                                         = "capstone-taskboard-public-ap-south-1b"
+          - "Owner"                                        = "devops-capstone"
+          - "Project"                                      = "capstone-taskboard"
+          - "Tier"                                         = "public"
+          - "kubernetes.io/cluster/capstone-taskboard-eks" = "shared"
+          - "kubernetes.io/role/elb"                       = "1"
+        } -> null
+      - tags_all                                       = {
+          - "Backend"                                      = "localstack"
+          - "Environment"                                  = "localstack"
+          - "ManagedBy"                                    = "terraform"
+          - "Name"                                         = "capstone-taskboard-public-ap-south-1b"
+          - "Owner"                                        = "devops-capstone"
+          - "Project"                                      = "capstone-taskboard"
+          - "Tier"                                         = "public"
+          - "kubernetes.io/cluster/capstone-taskboard-eks" = "shared"
+          - "kubernetes.io/role/elb"                       = "1"
+        } -> null
+      - vpc_id                                         = "vpc-94c07c1b" -> null
+        # (4 unchanged attributes hidden)
+    }
+
+  # module.network.aws_vpc.this will be destroyed
+  - resource "aws_vpc" "this" {
+      - arn                                  = "arn:aws:ec2:ap-south-1:000000000000:vpc/vpc-94c07c1b" -> null
+      - assign_generated_ipv6_cidr_block     = false -> null
+      - cidr_block                           = "10.20.0.0/16" -> null
+      - default_network_acl_id               = "acl-882314d1" -> null
+      - default_route_table_id               = "rtb-b9a06ad5" -> null
+      - default_security_group_id            = "sg-5a132e6fbe455ff81" -> null
+      - dhcp_options_id                      = "default" -> null
+      - enable_dns_hostnames                 = true -> null
+      - enable_dns_support                   = true -> null
+      - enable_network_address_usage_metrics = false -> null
+      - id                                   = "vpc-94c07c1b" -> null
+      - instance_tenancy                     = "default" -> null
+      - ipv6_netmask_length                  = 0 -> null
+      - main_route_table_id                  = "rtb-b9a06ad5" -> null
+      - owner_id                             = "000000000000" -> null
+      - region                               = "ap-south-1" -> null
+      - tags                                 = {
+          - "Backend"     = "localstack"
+          - "Environment" = "localstack"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "capstone-taskboard-vpc"
+          - "Owner"       = "devops-capstone"
+          - "Project"     = "capstone-taskboard"
+        } -> null
+      - tags_all                             = {
+          - "Backend"     = "localstack"
+          - "Environment" = "localstack"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "capstone-taskboard-vpc"
+          - "Owner"       = "devops-capstone"
+          - "Project"     = "capstone-taskboard"
+        } -> null
+        # (4 unchanged attributes hidden)
+    }
+
+Plan: 0 to add, 0 to change, 20 to destroy.
+
+Changes to Outputs:
+  - alb_security_group_id   = "sg-931cb4e13b2b4752a" -> null
+  - app_security_group_id   = "sg-0e0f4b485e9594a69" -> null
+  - internet_gateway_id     = "igw-bfd39226" -> null
+  - nat_gateway_ids         = [
+      - "nat-1aa9ae57442d9711f",
+    ] -> null
+  - private_route_table_ids = [
+      - "rtb-e120610b",
+      - "rtb-19b910fd",
+    ] -> null
+  - private_subnet_ids      = [
+      - "subnet-d842c79b",
+      - "subnet-26d7ebcf",
+    ] -> null
+  - public_route_table_id   = "rtb-b0283267" -> null
+  - public_subnet_azs       = [
+      - "ap-south-1a",
+      - "ap-south-1b",
+    ] -> null
+  - public_subnet_cidrs     = [
+      - "10.20.101.0/24",
+      - "10.20.102.0/24",
+    ] -> null
+  - public_subnet_ids       = [
+      - "subnet-90bc2ec2",
+      - "subnet-d483405e",
+    ] -> null
+  - vpc_cidr_block          = "10.20.0.0/16" -> null
+  - vpc_id                  = "vpc-94c07c1b" -> null
+module.network.aws_route_table_association.public[0]: Destroying... [id=rtbassoc-6af8a8e7]
+module.network.aws_route_table_association.private[1]: Destroying... [id=rtbassoc-b04fb515]
+module.network.aws_route_table_association.public[1]: Destroying... [id=rtbassoc-798bab13]
+module.network.aws_route.private_nat[0]: Destroying... [id=r-rtb-e120610b1080289494]
+module.network.aws_route.private_nat[1]: Destroying... [id=r-rtb-19b910fd1080289494]
+module.network.aws_route_table_association.private[0]: Destroying... [id=rtbassoc-f375fadc]
+module.network.aws_route.public_internet: Destroying... [id=r-rtb-b02832671080289494]
+module.network.aws_security_group.app: Destroying... [id=sg-0e0f4b485e9594a69]
+module.network.aws_route_table_association.private[1]: Destruction complete after 0s
+module.network.aws_route_table_association.public[0]: Destruction complete after 0s
+module.network.aws_route_table_association.private[0]: Destruction complete after 0s
+module.network.aws_route_table_association.public[1]: Destruction complete after 0s
+module.network.aws_security_group.app: Destruction complete after 0s
+module.network.aws_subnet.private[1]: Destroying... [id=subnet-26d7ebcf]
+module.network.aws_subnet.private[0]: Destroying... [id=subnet-d842c79b]
+module.network.aws_security_group.alb: Destroying... [id=sg-931cb4e13b2b4752a]
+module.network.aws_subnet.private[0]: Destruction complete after 0s
+module.network.aws_subnet.private[1]: Destruction complete after 0s
+module.network.aws_security_group.alb: Destruction complete after 0s
+module.network.aws_route.public_internet: Destruction complete after 1s
+module.network.aws_route.private_nat[1]: Destruction complete after 1s
+module.network.aws_route.private_nat[0]: Destruction complete after 1s
+module.network.aws_route_table.public: Destroying... [id=rtb-b0283267]
+module.network.aws_route_table.private[1]: Destroying... [id=rtb-19b910fd]
+module.network.aws_nat_gateway.this[0]: Destroying... [id=nat-1aa9ae57442d9711f]
+module.network.aws_route_table.private[0]: Destroying... [id=rtb-e120610b]
+module.network.aws_route_table.public: Destruction complete after 0s
+module.network.aws_route_table.private[0]: Destruction complete after 0s
+module.network.aws_route_table.private[1]: Destruction complete after 0s
+module.network.aws_nat_gateway.this[0]: Still destroying... [id=nat-1aa9ae57442d9711f, 00m10s elapsed]
+module.network.aws_nat_gateway.this[0]: Still destroying... [id=nat-1aa9ae57442d9711f, 00m20s elapsed]
+module.network.aws_nat_gateway.this[0]: Destruction complete after 20s
+module.network.aws_eip.nat[0]: Destroying... [id=eipalloc-30db173d]
+module.network.aws_subnet.public[1]: Destroying... [id=subnet-d483405e]
+module.network.aws_subnet.public[0]: Destroying... [id=subnet-90bc2ec2]
+module.network.aws_eip.nat[0]: Destruction complete after 0s
+module.network.aws_subnet.public[0]: Destruction complete after 0s
+module.network.aws_subnet.public[1]: Destruction complete after 0s
+module.network.aws_internet_gateway.this: Destroying... [id=igw-bfd39226]
+module.network.aws_internet_gateway.this: Destruction complete after 0s
+module.network.aws_vpc.this: Destroying... [id=vpc-94c07c1b]
+module.network.aws_vpc.this: Destruction complete after 0s
+
+Destroy complete! Resources: 20 destroyed.

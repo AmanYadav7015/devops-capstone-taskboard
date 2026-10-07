@@ -1,0 +1,31 @@
+$ terraform plan        (skip_aws_api_checks left at its default of false, no AWS env vars set)
+
+
+Changes to Outputs:
+  + aws_region         = "ap-south-1"
+  + kubeconfig_command = "aws eks update-kubeconfig --region ap-south-1 --name capstone-taskboard-eks"
+
+You can apply this plan to save these new output values to the Terraform
+state, without changing any real infrastructure.
+
+Error: No valid credential sources found
+
+  with provider["registry.terraform.io/hashicorp/aws"],
+  on versions.tf line 12, in provider "aws":
+  12: provider "aws" {
+
+Please see https://registry.terraform.io/providers/hashicorp/aws
+for more information about providing credentials.
+
+Error: failed to refresh cached credentials, no EC2 IMDS role found,
+operation error ec2imds: GetMetadata, exceeded maximum number of attempts, 3,
+request send failed, Get
+"http://169.254.169.254/latest/meta-data/iam/security-credentials/": dial tcp
+169.254.169.254:80: connect: no route to host
+
+
+$ ls ~/.aws
+ls: /Users/aman/.aws: No such file or directory
+
+$ env | grep -c AWS_
+0

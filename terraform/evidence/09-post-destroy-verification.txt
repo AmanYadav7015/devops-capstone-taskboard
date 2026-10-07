@@ -1,0 +1,32 @@
+Post-destroy verification. Every query below is against LocalStack on http://localhost:4566.
+
+$ terraform state list
+(empty: the state file holds no resources)
+
+$ aws ec2 describe-vpcs --filters Name=tag:Project,Values=capstone-taskboard
+capstone VPCs remaining: []
+
+$ aws ec2 describe-subnets --filters Name=tag:Project,Values=capstone-taskboard
+capstone subnets remaining: []
+
+$ aws ec2 describe-internet-gateways --filters Name=tag:Project,Values=capstone-taskboard
+capstone internet gateways remaining: []
+
+$ aws ec2 describe-route-tables --filters Name=tag:Project,Values=capstone-taskboard
+capstone route tables remaining: []
+
+$ aws ec2 describe-nat-gateways  (available only)
+capstone NAT gateways remaining: []
+
+$ aws ec2 describe-addresses
+elastic IPs remaining: []
+
+$ aws ec2 describe-security-groups  (names containing capstone)
+capstone security groups remaining: []
+
+$ aws iam list-roles  (names starting with capstone)
+capstone IAM roles remaining: []
+
+$ docker ps --filter name=localstack-main
+localstack-main  localstack/localstack:3.8  Up 2 hours (healthy)
+(left running as required)

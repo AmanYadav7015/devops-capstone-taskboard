@@ -1,0 +1,69 @@
+All commands below ran against LocalStack on http://localhost:4566, never against AWS.
+VPC under test: vpc-94c07c1b
+
+$ aws --endpoint-url=http://localhost:4566 ec2 describe-vpcs --filters Name=tag:Project,Values=capstone-taskboard
+-------------------------------------------------------------------------
+|                             DescribeVpcs                              |
++--------------+--------------------------+------------+----------------+
+|     Cidr     |          Name            |   State    |     VpcId      |
++--------------+--------------------------+------------+----------------+
+|  10.20.0.0/16|  capstone-taskboard-vpc  |  available |  vpc-94c07c1b  |
++--------------+--------------------------+------------+----------------+
+
+$ aws --endpoint-url=http://localhost:4566 ec2 describe-subnets --filters Name=vpc-id,Values=vpc-94c07c1b
+-----------------------------------------------------------------------------
+|                              DescribeSubnets                              |
++-------------+-----------------+-----------+-------------------+-----------+
+|     AZ      |      Cidr       | PublicIP  |     SubnetId      |   Tier    |
++-------------+-----------------+-----------+-------------------+-----------+
+|  ap-south-1a|  10.20.1.0/24   |  False    |  subnet-d842c79b  |  private  |
+|  ap-south-1a|  10.20.101.0/24 |  True     |  subnet-90bc2ec2  |  public   |
+|  ap-south-1b|  10.20.102.0/24 |  True     |  subnet-d483405e  |  public   |
+|  ap-south-1b|  10.20.2.0/24   |  False    |  subnet-26d7ebcf  |  private  |
++-------------+-----------------+-----------+-------------------+-----------+
+
+Public subnet count and distinct availability zones:
+  public subnets: 2
+  AZ: ap-south-1a
+  AZ: ap-south-1b
+
+$ aws --endpoint-url=http://localhost:4566 ec2 describe-internet-gateways --filters Name=attachment.vpc-id,Values=vpc-94c07c1b
+-----------------------------------------------
+|          DescribeInternetGateways           |
++--------------+----------------+-------------+
+|  AttachedTo  |     IgwId      |    State    |
++--------------+----------------+-------------+
+|  vpc-94c07c1b|  igw-bfd39226  |  available  |
++--------------+----------------+-------------+
+
+$ aws --endpoint-url=http://localhost:4566 ec2 describe-route-tables --filters Name=vpc-id,Values=vpc-94c07c1b
+----------------------------------------------------------------------------------
+|                               DescribeRouteTables                              |
++-------+---------------------------------------------+---------------+----------+
+| Assoc |                    Name                     | RouteTableId  | Routes   |
++-------+---------------------------------------------+---------------+----------+
+|  1    |  None                                       |  rtb-b9a06ad5 |  1       |
+|  1    |  capstone-taskboard-private-rt-ap-south-1b  |  rtb-19b910fd |  2       |
+|  1    |  capstone-taskboard-private-rt-ap-south-1a  |  rtb-e120610b |  2       |
+|  2    |  capstone-taskboard-public-rt               |  rtb-b0283267 |  2       |
++-------+---------------------------------------------+---------------+----------+
+
+$ aws --endpoint-url=http://localhost:4566 ec2 describe-nat-gateways --filter Name=vpc-id,Values=vpc-94c07c1b
+-----------------------------------------------------------
+|                   DescribeNatGateways                   |
++------------------------+------------+-------------------+
+|      NatGatewayId      |   State    |     SubnetId      |
++------------------------+------------+-------------------+
+|  nat-1aa9ae57442d9711f |  available |  subnet-90bc2ec2  |
++------------------------+------------+-------------------+
+
+$ aws --endpoint-url=http://localhost:4566 ec2 describe-security-groups --filters Name=vpc-id,Values=vpc-94c07c1b
+-----------------------------------------------------------------------
+|                       DescribeSecurityGroups                        |
++-----------------------+-----------------------------+---------------+
+|        GroupId        |          GroupName          | IngressRules  |
++-----------------------+-----------------------------+---------------+
+|  sg-5a132e6fbe455ff81 |  default                    |  0            |
+|  sg-931cb4e13b2b4752a |  capstone-taskboard-alb-sg  |  2            |
+|  sg-0e0f4b485e9594a69 |  capstone-taskboard-app-sg  |  2            |
++-----------------------+-----------------------------+---------------+

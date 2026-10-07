@@ -1,0 +1,103 @@
+Evidence that the EKS half of this configuration cannot be applied on this machine.
+Nothing below is edited. These are the real responses from LocalStack on http://localhost:4566.
+
+----- 1. LocalStack edition and service list -----
+$ curl -s http://localhost:4566/_localstack/health
+{
+    "services": {
+        "acm": "disabled",
+        "apigateway": "disabled",
+        "cloudformation": "disabled",
+        "cloudwatch": "disabled",
+        "config": "disabled",
+        "dynamodb": "disabled",
+        "dynamodbstreams": "disabled",
+        "ec2": "running",
+        "es": "disabled",
+        "events": "disabled",
+        "firehose": "disabled",
+        "iam": "running",
+        "kinesis": "disabled",
+        "kms": "disabled",
+        "lambda": "disabled",
+        "logs": "disabled",
+        "opensearch": "disabled",
+        "redshift": "disabled",
+        "resource-groups": "disabled",
+        "resourcegroupstaggingapi": "disabled",
+        "route53": "disabled",
+        "route53resolver": "disabled",
+        "s3": "running",
+        "s3control": "disabled",
+        "scheduler": "disabled",
+        "secretsmanager": "disabled",
+        "ses": "disabled",
+        "sns": "disabled",
+        "sqs": "disabled",
+        "ssm": "disabled",
+        "stepfunctions": "disabled",
+        "sts": "running",
+        "support": "disabled",
+        "swf": "disabled",
+        "transcribe": "disabled"
+    },
+    "edition": "community",
+    "version": "3.8.1"
+}
+
+The edition is "community". There is no "eks" key in the services map at all,
+and no "rds" key either. Only ec2, iam, s3 and sts report "running".
+
+----- 2. AWS CLI: eks list-clusters -----
+$ aws --endpoint-url=http://localhost:4566 eks list-clusters
+
+aws: [ERROR]: An error occurred (InternalFailure) when calling the ListClusters operation: API for service 'eks' not yet implemented or pro feature - please check https://docs.localstack.cloud/references/coverage/ for further information
+
+----- 3. AWS CLI: eks create-cluster -----
+$ aws --endpoint-url=http://localhost:4566 eks create-cluster --name capstone-taskboard-eks ...
+
+aws: [ERROR]: An error occurred (InternalFailure) when calling the CreateCluster operation: API for service 'eks' not yet implemented or pro feature - please check https://docs.localstack.cloud/references/coverage/ for further information
+
+----- 4. Terraform: applying modules/eks with the provider pointed at LocalStack -----
+The IAM roles, the six policy attachments and the control plane security group all created
+successfully, because LocalStack community does implement IAM and EC2. The run then stopped
+on the first genuine EKS API call:
+
+$ terraform apply -auto-approve      (provider endpoints eks/ec2/iam/sts -> http://localhost:4566)
+      + node_repair_config (known after apply)
+
+      + scaling_config {
+          + desired_size = 2
+          + max_size     = 4
+          + min_size     = 2
+        }
+
+      + update_config {
+          + max_unavailable = 1
+        }
+    }
+
+Plan: 5 to add, 0 to change, 0 to destroy.
+module.eks.aws_eks_cluster.this: Creating...
+
+Error: creating EKS Cluster (capstone-taskboard-eks): operation error EKS: CreateCluster, https response error StatusCode: 501, RequestID: 65c48cd3-7403-4a65-b300-0b6191c8b919, api error InternalFailure: API for service 'eks' not yet implemented or pro feature - please check https://docs.localstack.cloud/references/coverage/ for further information
+
+  with module.eks.aws_eks_cluster.this,
+  on ../modules/eks/main.tf line 108, in resource "aws_eks_cluster" "this":
+ 108: resource "aws_eks_cluster" "this" {
+
+
+----- 5. Tearing the probe back down -----
+$ terraform destroy -auto-approve
+module.eks.aws_iam_role_policy_attachment.node["arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"]: Destruction complete after 0s
+module.eks.aws_security_group.cluster: Destruction complete after 0s
+module.eks.aws_iam_role_policy_attachment.cluster["arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"]: Destruction complete after 0s
+module.eks.aws_iam_role_policy_attachment.node["arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"]: Destruction complete after 0s
+module.eks.aws_iam_role_policy_attachment.node["arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"]: Destruction complete after 0s
+module.eks.aws_iam_role_policy_attachment.cluster["arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"]: Destruction complete after 0s
+module.eks.aws_iam_role.node: Destroying... [id=capstone-taskboard-eks-node-role]
+module.eks.aws_iam_role.cluster: Destroying... [id=capstone-taskboard-eks-cluster-role]
+module.eks.aws_iam_role.cluster: Destruction complete after 0s
+module.eks.aws_iam_role.node: Destruction complete after 0s
+
+Destroy complete! Resources: 9 destroyed.

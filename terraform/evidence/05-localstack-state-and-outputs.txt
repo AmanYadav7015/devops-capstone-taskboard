@@ -1,0 +1,80 @@
+$ terraform state list
+module.network.aws_eip.nat[0]
+module.network.aws_internet_gateway.this
+module.network.aws_nat_gateway.this[0]
+module.network.aws_route.private_nat[0]
+module.network.aws_route.private_nat[1]
+module.network.aws_route.public_internet
+module.network.aws_route_table.private[0]
+module.network.aws_route_table.private[1]
+module.network.aws_route_table.public
+module.network.aws_route_table_association.private[0]
+module.network.aws_route_table_association.private[1]
+module.network.aws_route_table_association.public[0]
+module.network.aws_route_table_association.public[1]
+module.network.aws_security_group.alb
+module.network.aws_security_group.app
+module.network.aws_subnet.private[0]
+module.network.aws_subnet.private[1]
+module.network.aws_subnet.public[0]
+module.network.aws_subnet.public[1]
+module.network.aws_vpc.this
+
+$ terraform output
+alb_security_group_id = "sg-931cb4e13b2b4752a"
+app_security_group_id = "sg-0e0f4b485e9594a69"
+internet_gateway_id = "igw-bfd39226"
+nat_gateway_ids = [
+  "nat-1aa9ae57442d9711f",
+]
+private_route_table_ids = [
+  "rtb-e120610b",
+  "rtb-19b910fd",
+]
+private_subnet_ids = [
+  "subnet-d842c79b",
+  "subnet-26d7ebcf",
+]
+public_route_table_id = "rtb-b0283267"
+public_subnet_azs = [
+  "ap-south-1a",
+  "ap-south-1b",
+]
+public_subnet_cidrs = [
+  "10.20.101.0/24",
+  "10.20.102.0/24",
+]
+public_subnet_ids = [
+  "subnet-90bc2ec2",
+  "subnet-d483405e",
+]
+vpc_cidr_block = "10.20.0.0/16"
+vpc_id = "vpc-94c07c1b"
+
+$ terraform plan        (drift check, should report no changes)
+module.network.aws_vpc.this: Refreshing state... [id=vpc-94c07c1b]
+module.network.aws_internet_gateway.this: Refreshing state... [id=igw-bfd39226]
+module.network.aws_route_table.public: Refreshing state... [id=rtb-b0283267]
+module.network.aws_subnet.private[0]: Refreshing state... [id=subnet-d842c79b]
+module.network.aws_subnet.private[1]: Refreshing state... [id=subnet-26d7ebcf]
+module.network.aws_route_table.private[1]: Refreshing state... [id=rtb-19b910fd]
+module.network.aws_route_table.private[0]: Refreshing state... [id=rtb-e120610b]
+module.network.aws_subnet.public[0]: Refreshing state... [id=subnet-90bc2ec2]
+module.network.aws_subnet.public[1]: Refreshing state... [id=subnet-d483405e]
+module.network.aws_security_group.alb: Refreshing state... [id=sg-931cb4e13b2b4752a]
+module.network.aws_route.public_internet: Refreshing state... [id=r-rtb-b02832671080289494]
+module.network.aws_eip.nat[0]: Refreshing state... [id=eipalloc-30db173d]
+module.network.aws_route_table_association.private[1]: Refreshing state... [id=rtbassoc-b04fb515]
+module.network.aws_route_table_association.private[0]: Refreshing state... [id=rtbassoc-f375fadc]
+module.network.aws_route_table_association.public[0]: Refreshing state... [id=rtbassoc-6af8a8e7]
+module.network.aws_route_table_association.public[1]: Refreshing state... [id=rtbassoc-798bab13]
+module.network.aws_security_group.app: Refreshing state... [id=sg-0e0f4b485e9594a69]
+module.network.aws_nat_gateway.this[0]: Refreshing state... [id=nat-1aa9ae57442d9711f]
+module.network.aws_route.private_nat[1]: Refreshing state... [id=r-rtb-19b910fd1080289494]
+module.network.aws_route.private_nat[0]: Refreshing state... [id=r-rtb-e120610b1080289494]
+
+No changes. Your infrastructure matches the configuration.
+
+Terraform has compared your real infrastructure against your configuration
+and found no differences, so no changes are needed.
+exit code: 0   (0 = no changes, 2 = drift)

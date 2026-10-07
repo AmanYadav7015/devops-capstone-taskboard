@@ -1,0 +1,25 @@
+Resource types in the saved offline plan, counted from terraform show -json.
+
+$ terraform show -json offline.tfplan | jq -r '.resource_changes[] | select(.change.actions[]=="create") | .type' | sort | uniq -c
+
+  1  aws_cloudwatch_log_group
+  1  aws_eip
+  3  aws_eks_addon
+  1  aws_eks_cluster
+  1  aws_eks_node_group
+  2  aws_iam_role
+  6  aws_iam_role_policy_attachment
+  1  aws_internet_gateway
+  1  aws_nat_gateway
+  3  aws_route
+  3  aws_route_table
+  4  aws_route_table_association
+  3  aws_security_group
+  4  aws_subnet
+  1  aws_vpc
+ 35  TOTAL
+
+Rubric-relevant lines:
+  1 aws_vpc plus 4 aws_subnet, of which 2 are public (map_public_ip_on_launch = true)
+    in ap-south-1a and ap-south-1b
+  1 aws_eks_cluster plus 1 aws_eks_node_group, the required managed worker node group
