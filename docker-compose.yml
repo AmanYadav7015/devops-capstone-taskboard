@@ -1,0 +1,63 @@
+name: capstone-taskboard
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: capstone-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-taskboard}
+      POSTGRES_USER: ${POSTGRES_USER:-taskboard}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-taskboard}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - capstone-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-taskboard} -d ${POSTGRES_DB:-taskboard}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - capstone
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: capstone-taskboard-backend:local
+    container_name: capstone-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-taskboard}:${POSTGRES_PASSWORD:-taskboard}@postgres:5432/${POSTGRES_DB:-taskboard}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    networks:
+      - capstone
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: capstone-taskboard-frontend:local
+    container_name: capstone-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    networks:
+      - capstone
+
+volumes:
+  capstone-postgres-data:
+    name: capstone-postgres-data
+
+networks:
+  capstone:
+    name: capstone-network
