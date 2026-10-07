@@ -1,0 +1,296 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  BACKEND_IMAGE_NAME: taskboard-backend
+  FRONTEND_IMAGE_NAME: taskboard-frontend
+  PYTHON_VERSION: '3.12'
+  NODE_VERSION: '22'
+  TRIVY_VERSION: v0.75.0
+
+jobs:
+  backend-tests:
+    name: Backend tests (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run pytest
+        working-directory: backend
+        run: pytest -v --cov=app --cov-report=term-missing --cov-report=xml
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage.xml
+          if-no-files-found: ignore
+
+  frontend-build:
+    name: Frontend build (Vite)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Build the production bundle
+        working-directory: frontend
+        run: npm run build
+
+      - name: Show the build output
+        working-directory: frontend
+        run: ls -lR dist
+
+      - name: Upload the built bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+
+  compose-stack:
+    name: Docker Compose stack
+    runs-on: ubuntu-latest
+    needs:
+      - backend-tests
+      - frontend-build
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Start the full stack
+        run: docker compose up --build --detach --wait
+
+      - name: Show service status
+        run: docker compose ps
+
+      - name: Prove both application images run as non-root
+        run: |
+          echo "backend:"
+          docker compose exec -T backend id
+          echo "frontend:"
+          docker compose exec -T frontend id
+
+      - name: Check the backend directly
+        run: |
+          curl -fsS http://localhost:8000/health
+          echo
+          curl -fsS http://localhost:8000/ready
+          echo
+
+      - name: Check the frontend and the proxied API
+        run: |
+          curl -fsS -o /dev/null -w 'frontend HTTP %{http_code}\n' http://localhost:3000/
+          curl -fsS http://localhost:3000/api/tasks/stats
+          echo
+
+      - name: Exercise the API end to end through the frontend
+        run: |
+          curl -fsS -X POST http://localhost:3000/api/tasks \
+            -H 'Content-Type: application/json' \
+            -d '{"title":"Pipeline smoke test","description":"Created by the CI compose job","priority":"HIGH","assignee":"pipeline","status":"TODO"}'
+          echo
+          curl -fsS http://localhost:3000/api/tasks
+          echo
+          curl -fsS http://localhost:3000/api/tasks/stats
+          echo
+
+      - name: Confirm the row reached PostgreSQL
+        run: docker compose exec -T postgres psql -U taskboard -d taskboard -c 'select id, title, priority, status, assignee from tasks;'
+
+      - name: Collect stack logs
+        if: always()
+        run: docker compose logs
+
+      - name: Tear the stack down
+        if: always()
+        run: docker compose down --volumes --remove-orphans
+
+  build-scan-publish:
+    name: Build, scan and publish images
+    runs-on: ubuntu-latest
+    needs:
+      - backend-tests
+      - frontend-build
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      backend-image: ${{ steps.refs.outputs.backend }}
+      frontend-image: ${{ steps.refs.outputs.frontend }}
+      tag: ${{ steps.refs.outputs.sha }}
+      short-tag: ${{ steps.refs.outputs.short_sha }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Resolve image references from the commit SHA
+        id: refs
+        run: |
+          owner=$(printf '%s' "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          sha="${GITHUB_SHA}"
+          short="${GITHUB_SHA::7}"
+          {
+            echo "backend=${REGISTRY}/${owner}/${BACKEND_IMAGE_NAME}"
+            echo "frontend=${REGISTRY}/${owner}/${FRONTEND_IMAGE_NAME}"
+            echo "sha=${sha}"
+            echo "short_sha=${short}"
+          } >> "$GITHUB_OUTPUT"
+          echo "backend image : ${REGISTRY}/${owner}/${BACKEND_IMAGE_NAME}:${sha}"
+          echo "frontend image: ${REGISTRY}/${owner}/${FRONTEND_IMAGE_NAME}:${sha}"
+
+      - name: Build the backend image
+        run: |
+          docker build \
+            --tag "${{ steps.refs.outputs.backend }}:${{ steps.refs.outputs.sha }}" \
+            --tag "${{ steps.refs.outputs.backend }}:${{ steps.refs.outputs.short_sha }}" \
+            ./backend
+
+      - name: Build the frontend image
+        run: |
+          docker build \
+            --tag "${{ steps.refs.outputs.frontend }}:${{ steps.refs.outputs.sha }}" \
+            --tag "${{ steps.refs.outputs.frontend }}:${{ steps.refs.outputs.short_sha }}" \
+            ./frontend
+
+      - name: Confirm both images are configured to run as non-root
+        run: |
+          docker run --rm --entrypoint id "${{ steps.refs.outputs.backend }}:${{ steps.refs.outputs.sha }}"
+          docker run --rm --entrypoint id "${{ steps.refs.outputs.frontend }}:${{ steps.refs.outputs.sha }}"
+
+      - name: Install Trivy ${{ env.TRIVY_VERSION }}
+        uses: aquasecurity/setup-trivy@v0.2.6
+        with:
+          version: ${{ env.TRIVY_VERSION }}
+          cache: true
+
+      - name: Download the Trivy vulnerability database
+        run: trivy image --download-db-only
+
+      - name: Trivy full inventory report (informational)
+        run: |
+          trivy image --scanners vuln --severity HIGH,CRITICAL --exit-code 0 \
+            --ignorefile /dev/null "${{ steps.refs.outputs.backend }}:${{ steps.refs.outputs.sha }}"
+          trivy image --scanners vuln --severity HIGH,CRITICAL --exit-code 0 \
+            --ignorefile /dev/null "${{ steps.refs.outputs.frontend }}:${{ steps.refs.outputs.sha }}"
+
+      - name: Trivy security gate on the backend image
+        run: |
+          trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed \
+            --ignorefile .trivyignore.yaml --exit-code 1 \
+            "${{ steps.refs.outputs.backend }}:${{ steps.refs.outputs.sha }}"
+
+      - name: Trivy security gate on the frontend image
+        run: |
+          trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed \
+            --ignorefile .trivyignore.yaml --exit-code 1 \
+            "${{ steps.refs.outputs.frontend }}:${{ steps.refs.outputs.sha }}"
+
+      - name: Export the Trivy findings as SARIF
+        if: always()
+        run: |
+          trivy image --scanners vuln --severity HIGH,CRITICAL --format sarif \
+            --ignorefile /dev/null --exit-code 0 \
+            --output trivy-backend.sarif "${{ steps.refs.outputs.backend }}:${{ steps.refs.outputs.sha }}"
+          trivy image --scanners vuln --severity HIGH,CRITICAL --format sarif \
+            --ignorefile /dev/null --exit-code 0 \
+            --output trivy-frontend.sarif "${{ steps.refs.outputs.frontend }}:${{ steps.refs.outputs.sha }}"
+
+      - name: Upload the Trivy reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-reports
+          path: trivy-*.sarif
+          if-no-files-found: ignore
+
+      - name: Log in to the GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push both images to GHCR
+        if: github.event_name != 'pull_request'
+        run: |
+          docker push "${{ steps.refs.outputs.backend }}:${{ steps.refs.outputs.sha }}"
+          docker push "${{ steps.refs.outputs.backend }}:${{ steps.refs.outputs.short_sha }}"
+          docker push "${{ steps.refs.outputs.frontend }}:${{ steps.refs.outputs.sha }}"
+          docker push "${{ steps.refs.outputs.frontend }}:${{ steps.refs.outputs.short_sha }}"
+
+      - name: Show the published image digests
+        if: github.event_name != 'pull_request'
+        run: |
+          docker image inspect --format '{{index .RepoDigests 0}}' "${{ steps.refs.outputs.backend }}:${{ steps.refs.outputs.sha }}"
+          docker image inspect --format '{{index .RepoDigests 0}}' "${{ steps.refs.outputs.frontend }}:${{ steps.refs.outputs.sha }}"
+
+  pipeline-summary:
+    name: Pipeline summary
+    runs-on: ubuntu-latest
+    needs:
+      - backend-tests
+      - frontend-build
+      - compose-stack
+      - build-scan-publish
+    if: always()
+    steps:
+      - name: Write the run summary
+        run: |
+          {
+            echo "## TaskBoard CI/CD"
+            echo
+            echo "| Stage | Result |"
+            echo "| --- | --- |"
+            echo "| Backend tests (pytest) | ${{ needs.backend-tests.result }} |"
+            echo "| Frontend build (Vite) | ${{ needs.frontend-build.result }} |"
+            echo "| Docker Compose stack | ${{ needs.compose-stack.result }} |"
+            echo "| Build, scan and publish | ${{ needs.build-scan-publish.result }} |"
+            echo
+            echo "Commit: \`${GITHUB_SHA}\`"
+            echo
+            echo "Images published for this commit:"
+            echo
+            echo "- \`${{ needs.build-scan-publish.outputs.backend-image }}:${{ needs.build-scan-publish.outputs.tag }}\`"
+            echo "- \`${{ needs.build-scan-publish.outputs.frontend-image }}:${{ needs.build-scan-publish.outputs.tag }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

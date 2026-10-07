@@ -1,0 +1,26 @@
+vulnerabilities:
+  - id: CVE-2025-62727
+    statement: >-
+      Starlette 0.41.3 is pulled in transitively by fastapi==0.115.6, whose
+      dependency range is starlette>=0.40.0,<0.42.0, so the fixed 0.49.1 release
+      cannot be installed without upgrading FastAPI itself. The advisory is a
+      denial of service through Range header merging in the StaticFiles
+      response; TaskBoard serves no static files from Starlette (nginx serves
+      the frontend bundle) and the API returns no Range-capable responses.
+      Accepted until the FastAPI pin in backend/requirements.txt is raised to a
+      release that allows starlette>=0.49.1.
+    expired_at: 2027-01-31
+  - id: CVE-2026-48818
+    statement: >-
+      Same transitive pin as CVE-2025-62727. The advisory covers SSRF and NTLM
+      credential theft through UNC paths in starlette.staticfiles.StaticFiles on
+      Windows hosts. The backend image is Linux only and mounts no StaticFiles
+      route. Accepted until the FastAPI pin is raised.
+    expired_at: 2027-01-31
+  - id: CVE-2026-54283
+    statement: >-
+      Same transitive pin as CVE-2025-62727. The advisory covers form parsing
+      limits being ignored for application/x-www-form-urlencoded bodies. Every
+      TaskBoard endpoint consumes JSON through Pydantic models and no route
+      calls request.form(). Accepted until the FastAPI pin is raised.
+    expired_at: 2027-01-31
