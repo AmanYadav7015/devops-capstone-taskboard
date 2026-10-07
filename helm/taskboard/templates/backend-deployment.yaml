@@ -2,28 +2,75 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "taskboard.fullname" . }}-backend
+  labels:
+    {{- include "taskboard.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ include "taskboard.backend.replicas" . }}
   selector:
-    matchLabels: {app: taskboard-backend}
+    matchLabels:
+      {{- include "taskboard.backend.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      labels: {app: taskboard-backend}
+      labels:
+        {{- include "taskboard.labels" . | nindent 8 }}
+        {{- include "taskboard.backend.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/postgres.yaml") . | sha256sum }}
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.postgres.enabled }}
+      initContainers:
+        - name: wait-for-postgres
+          image: {{ .Values.postgres.image }}
+          imagePullPolicy: {{ .Values.postgres.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - until pg_isready -h {{ include "taskboard.postgres.host" . }} -p {{ .Values.postgres.port }} -U {{ .Values.postgres.username }}; do echo waiting for postgres; sleep 2; done
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+      {{- end }}
       containers:
         - name: backend
           image: "{{ .Values.backend.image }}:{{ .Values.backend.tag }}"
-          ports: [{containerPort: 8000}]
+          imagePullPolicy: {{ .Values.backend.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.backend.port }}
           env:
             - name: DATABASE_URL
-              value: "postgresql+psycopg://{{ .Values.postgres.username }}:{{ .Values.postgres.password }}@{{ .Values.postgres.host }}:5432/{{ .Values.postgres.database }}"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "taskboard.postgres.secretName" . }}
+                  key: database-url
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
           readinessProbe:
-            httpGet: {path: /ready, port: 8000}
-            initialDelaySeconds: 10
+            httpGet:
+              path: /ready
+              port: http
             periodSeconds: 10
+            timeoutSeconds: 3
           livenessProbe:
-            httpGet: {path: /health, port: 8000}
-            initialDelaySeconds: 20
+            httpGet:
+              path: /health
+              port: http
             periodSeconds: 15
+            timeoutSeconds: 3
           resources:
-{{ toYaml .Values.resources | indent 12 }}
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.backend.securityContext | nindent 12 }}

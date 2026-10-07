@@ -1,4 +1,8 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: taskboard
+  name: capstone
+  labels:
+    name: capstone
+    app.kubernetes.io/part-of: taskboard
+    app.kubernetes.io/managed-by: kubectl

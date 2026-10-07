@@ -1,42 +1,128 @@
+{{- if .Values.postgres.enabled }}
 apiVersion: v1
 kind: Secret
-metadata: {name: taskboard-postgres}
+metadata:
+  name: {{ include "taskboard.postgres.secretName" . }}
+  labels:
+    {{- include "taskboard.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
 type: Opaque
 stringData:
   username: {{ .Values.postgres.username | quote }}
   password: {{ .Values.postgres.password | quote }}
+  database: {{ .Values.postgres.database | quote }}
+  database-url: {{ include "taskboard.databaseUrl" . | quote }}
 ---
 apiVersion: v1
 kind: Service
-metadata: {name: taskboard-postgres}
+metadata:
+  name: {{ include "taskboard.postgres.host" . }}
+  labels:
+    {{- include "taskboard.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
 spec:
-  selector: {app: taskboard-postgres}
-  ports: [{port: 5432, targetPort: 5432}]
----
-apiVersion: apps/v1
-kind: Deployment
-metadata: {name: taskboard-postgres}
-spec:
-  replicas: 1
-  selector: {matchLabels: {app: taskboard-postgres}}
-  template:
-    metadata: {labels: {app: taskboard-postgres}}
-    spec:
-      containers:
-      - name: postgres
-        image: postgres:16-alpine
-        ports: [{containerPort: 5432}]
-        env:
-        - {name: POSTGRES_DB, value: "{{ .Values.postgres.database }}"}
-        - {name: POSTGRES_USER, valueFrom: {secretKeyRef: {name: taskboard-postgres, key: username}}}
-        - {name: POSTGRES_PASSWORD, valueFrom: {secretKeyRef: {name: taskboard-postgres, key: password}}}
-        readinessProbe: {exec: {command: ["sh","-c","pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]}, initialDelaySeconds: 5, periodSeconds: 10}
-        volumeMounts: [{name: data, mountPath: /var/lib/postgresql/data}]
-      volumes: [{name: data, persistentVolumeClaim: {claimName: taskboard-postgres-data}}]
+  type: ClusterIP
+  selector:
+    {{- include "taskboard.postgres.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: postgres
+      port: {{ .Values.postgres.port }}
+      targetPort: postgres
+      protocol: TCP
+{{- if .Values.postgres.persistence.enabled }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
-metadata: {name: taskboard-postgres-data}
+metadata:
+  name: {{ include "taskboard.fullname" . }}-postgres-data
+  labels:
+    {{- include "taskboard.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+  annotations:
+    helm.sh/resource-policy: keep
 spec:
-  accessModes: [ReadWriteOnce]
-  resources: {requests: {storage: 5Gi}}
+  accessModes:
+    - ReadWriteOnce
+  {{- with .Values.postgres.persistence.storageClassName }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.postgres.persistence.size }}
+{{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "taskboard.fullname" . }}-postgres
+  labels:
+    {{- include "taskboard.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "taskboard.postgres.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "taskboard.labels" . | nindent 8 }}
+        {{- include "taskboard.postgres.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image }}
+          imagePullPolicy: {{ .Values.postgres.pullPolicy }}
+          ports:
+            - name: postgres
+              containerPort: {{ .Values.postgres.port }}
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "taskboard.postgres.secretName" . }}
+                  key: database
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "taskboard.postgres.secretName" . }}
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "taskboard.postgres.secretName" . }}
+                  key: password
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.postgres.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+        {{- if .Values.postgres.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "taskboard.fullname" . }}-postgres-data
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+{{- end }}

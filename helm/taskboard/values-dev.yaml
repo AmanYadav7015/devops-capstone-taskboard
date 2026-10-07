@@ -1,6 +1,24 @@
 replicaCount: 1
+
+backend:
+  replicas: 1
+  pullPolicy: IfNotPresent
+
+frontend:
+  replicas: 1
+  pullPolicy: IfNotPresent
+
+postgres:
+  persistence:
+    enabled: false
+
 ingress:
   enabled: true
   host: taskboard.local
+
 hpa:
   enabled: false
+
+monitoring:
+  serviceMonitor:
+    enabled: false

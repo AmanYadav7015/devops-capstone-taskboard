@@ -1,28 +1,84 @@
-frontend:
-  image: ghcr.io/YOUR_ORG/taskboard-frontend
-  tag: latest
-backend:
-  image: ghcr.io/YOUR_ORG/taskboard-backend
-  tag: latest
+nameOverride: ""
+fullnameOverride: ""
+
 replicaCount: 2
-namespace: taskboard
+
+backend:
+  image: ghcr.io/amanyadav7015/taskboard-backend
+  tag: 13fc94b97ac9429277e6050b09e04a08ffd89cb3
+  pullPolicy: IfNotPresent
+  replicas: 2
+  port: 8000
+  compatibilityServiceName: backend
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+
+frontend:
+  image: ghcr.io/amanyadav7015/taskboard-frontend
+  tag: 13fc94b97ac9429277e6050b09e04a08ffd89cb3
+  pullPolicy: IfNotPresent
+  replicas: 2
+  port: 80
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 101
+
 imagePullSecrets: []
+
 postgres:
-  host: taskboard-postgres
+  enabled: true
+  image: postgres:16-alpine
+  pullPolicy: IfNotPresent
+  port: 5432
   database: taskboard
   username: taskboard
   password: taskboard
+  persistence:
+    enabled: true
+    size: 2Gi
+    storageClassName: ""
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
 ingress:
-  enabled: false
+  enabled: true
+  className: nginx
   host: taskboard.local
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 2m
+
 hpa:
   enabled: true
   minReplicas: 2
   maxReplicas: 6
   targetCPUUtilizationPercentage: 60
-resources:
-  requests: {cpu: 100m, memory: 256Mi}
-  limits: {cpu: 500m, memory: 512Mi}
+
 monitoring:
   serviceMonitor:
     enabled: true
+    interval: 15s
+    releaseLabel: kube-prometheus-stack

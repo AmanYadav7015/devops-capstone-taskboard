@@ -1,10 +1,38 @@
-frontend:
-  image: ghcr.io/YOUR_ORG/taskboard-frontend
+replicaCount: 3
+
 backend:
-  image: ghcr.io/YOUR_ORG/taskboard-backend
-replicaCount: 2
+  image: ghcr.io/amanyadav7015/taskboard-backend
+  tag: 13fc94b97ac9429277e6050b09e04a08ffd89cb3
+  replicas: 3
+  resources:
+    requests:
+      cpu: 200m
+      memory: 384Mi
+    limits:
+      cpu: 1000m
+      memory: 768Mi
+
+frontend:
+  image: ghcr.io/amanyadav7015/taskboard-frontend
+  tag: 13fc94b97ac9429277e6050b09e04a08ffd89cb3
+  replicas: 3
+
+postgres:
+  persistence:
+    enabled: true
+    size: 2Gi
+
 ingress:
   enabled: true
-  host: taskboard.example.com
+  className: nginx
+  host: taskboard.local
+
 hpa:
   enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+monitoring:
+  serviceMonitor:
+    enabled: true

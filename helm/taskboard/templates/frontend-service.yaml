@@ -1,6 +1,17 @@
 apiVersion: v1
 kind: Service
-metadata: {name: taskboard-frontend}
+metadata:
+  name: {{ include "taskboard.fullname" . }}-frontend
+  labels:
+    {{- include "taskboard.labels" . | nindent 4 }}
+    app: taskboard-frontend
+    app.kubernetes.io/component: frontend
 spec:
-  selector: {app: taskboard-frontend}
-  ports: [{port: 80, targetPort: 80}]
+  type: ClusterIP
+  selector:
+    {{- include "taskboard.frontend.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.frontend.port }}
+      targetPort: http
+      protocol: TCP

@@ -226,9 +226,10 @@ The infrastructure the cluster sits on is described separately, in Terraform:
 │   ├── nginx.conf           static serving plus the /api reverse proxy
 │   └── Dockerfile           Node build stage, nginx runtime, runs as uid 101
 ├── k8s/                     namespace and bootstrap manifests
-├── helm/taskboard/          the chart: Chart.yaml, values*.yaml, templates/
+├── helm/                    the chart, plus README.md documenting the deployment
+│   └── taskboard/           Chart.yaml, values*.yaml, templates/
 ├── terraform/               VPC + EKS, with modules/ and evidence/
-├── monitoring/              Prometheus and Grafana Helm values
+├── monitoring/              Prometheus and Grafana values, dashboard, install.sh, README.md
 ├── troubleshooting/         deliberately broken manifests for the failure lab
 ├── scripts/                 load generator used to exercise the HPA
 ├── docs/                    CI.md, DEMO.md, screenshots/
@@ -516,7 +517,8 @@ The chart renders:
 
 Three values files ship with the chart: `values.yaml` (defaults), `values-dev.yaml` and
 `values-prod.yaml`, so the same templates produce a laptop deployment and a production-shaped one
-without editing any YAML.
+without editing any YAML. The chart is documented in full, with the captured deployment output, in
+**[`helm/README.md`](helm/README.md)**.
 
 An Ingress *object* is only a routing request; an Ingress *controller* has to implement it. On
 minikube that is `minikube addons enable ingress`.
@@ -544,10 +546,16 @@ curl http://localhost:8000/metrics
 ```
 
 In the cluster, `kube-prometheus-stack` provides Prometheus and Grafana, configured from
-[`monitoring/prometheus-values.yaml`](monitoring/prometheus-values.yaml). The chart's
-`ServiceMonitor` registers the backend service as a scrape target, so Prometheus discovers the pods
-rather than being pointed at a fixed address — which is the only thing that still works after the
-HPA changes the replica count.
+[`monitoring/prometheus-values.yaml`](monitoring/prometheus-values.yaml) and
+[`monitoring/grafana-values.yaml`](monitoring/grafana-values.yaml), with
+[`monitoring/install.sh`](monitoring/install.sh) installing both and loading
+[`monitoring/grafana-dashboard-taskboard.json`](monitoring/grafana-dashboard-taskboard.json). The
+chart's `ServiceMonitor` registers the backend service as a scrape target, so Prometheus discovers
+the pods rather than being pointed at a fixed address — which is the only thing that still works
+after the HPA changes the replica count.
+
+The full writeup, with the scrape targets, the dashboard panels and the captured metric values, is
+**[`monitoring/README.md`](monitoring/README.md)**.
 
 [`scripts/load-test.sh`](scripts/load-test.sh) generates enough traffic to make the request-rate and
 latency panels move, and to put the HPA under real CPU pressure. A single health check will not do
@@ -579,8 +587,8 @@ behind a large diff.
 | **M5** CI/CD | [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml) · [run list](https://github.com/AmanYadav7015/devops-capstone-taskboard/actions) · the red-gate run and the GHCR tag list in [`docs/CI.md` §3–5](docs/CI.md) |
 | **M6** Trivy | the scan steps in the workflow · [`.trivyignore.yaml`](.trivyignore.yaml) · scan output and a worked CVE explanation in [`docs/CI.md` §5.3–5.6](docs/CI.md) |
 | **M7** Terraform | [`terraform/`](terraform/) · nine unedited transcripts in [`terraform/evidence/`](terraform/evidence/) · [`terraform/README.md`](terraform/README.md) |
-| **M8** Kubernetes + Helm | [`k8s/`](k8s/), [`helm/taskboard/`](helm/taskboard/) · the deployment transcript in `docs/` |
-| **M9** Observability | [`monitoring/`](monitoring/), the chart's `ServiceMonitor` · the scrape and dashboard evidence in `docs/` |
+| **M8** Kubernetes + Helm | [`k8s/`](k8s/), [`helm/taskboard/`](helm/taskboard/) · the chart walkthrough and the captured `helm upgrade`, `kubectl get pods` and Ingress output in [`helm/README.md`](helm/README.md) |
+| **M9** Observability | [`monitoring/`](monitoring/), the chart's `ServiceMonitor` · the scrape targets, the dashboard and the captured metrics in [`monitoring/README.md`](monitoring/README.md) |
 | **M10** Documentation + demo | this file · [`docs/DEMO.md`](docs/DEMO.md) |
 
 ---
@@ -602,6 +610,10 @@ Stated plainly, because a submission that oversells is worse than one that is ho
 * Trivy — scanning both images, failing on HIGH and CRITICAL, with findings that were fixed rather
   than suppressed, and the three that were suppressed carrying written reasons and expiry dates.
 * The live demo — commit, pipeline, registry, running image.
+* Kubernetes and Helm — the chart deployed to a real cluster, pods Running, Services, Ingress and
+  HPA, with the captured output in [`helm/README.md`](helm/README.md).
+* Observability — Prometheus scraping the application and a Grafana dashboard built on those
+  metrics, with the captured output in [`monitoring/README.md`](monitoring/README.md).
 
 **Partial, and why:**
 
