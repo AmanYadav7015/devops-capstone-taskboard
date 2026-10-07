@@ -23,7 +23,7 @@ def test_root_returns_the_service_banner(client):
     response = client.get("/")
     assert response.status_code == 200
     assert response.json()["service"] == "TaskBoard API"
-    assert response.json()["version"] == "1.0.0"
+    assert response.json()["version"] == "1.1.0"
 
 
 def test_metrics_endpoint_exposes_prometheus_text(client):
