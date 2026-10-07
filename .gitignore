@@ -28,9 +28,16 @@ test.db
 !.env.example
 
 .terraform/
+.terraform.tfstate.lock.info
 *.tfstate
 *.tfstate.*
-terraform.tfvars
+*.tfplan
+*.tfplan.*
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+!terraform.tfvars.example
 crash.log
+crash.*.log
 
 target/
